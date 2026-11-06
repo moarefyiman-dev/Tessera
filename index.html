@@ -1,0 +1,502 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101821">
+  <meta name="description" content="Explore, gather, and build in Teressa: Beneath the Bloom.">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="teressa-icon.svg" type="image/svg+xml">
+  <title>Teressa — Beneath the Bloom</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --ink: #f4f0dc;
+      --muted: #bec7b7;
+      --gold: #f2c56b;
+      --panel: rgba(14, 23, 30, .9);
+      --line: rgba(240, 218, 164, .24);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background: #101821;
+      font: 16px/1.55 Georgia, "Times New Roman", serif;
+    }
+    button { font: inherit; }
+    .scene {
+      position: relative;
+      display: grid;
+      min-height: 100vh;
+      place-items: center;
+      overflow-x: hidden;
+      overflow-y: auto;
+      padding: 28px 18px;
+      background:
+        radial-gradient(ellipse at 50% 65%, rgba(114, 139, 86, .2), transparent 48%),
+        radial-gradient(ellipse at 50% 0%, rgba(75, 110, 142, .25), transparent 55%),
+        linear-gradient(180deg, #121d2b 0%, #24384a 48%, #344a45 72%, #17251f 100%);
+    }
+    .stars {
+      position: absolute; inset: 0; pointer-events: none; opacity: .8;
+      background-image:
+        radial-gradient(2px 2px at 12% 18%, #fff5d5 45%, transparent 60%),
+        radial-gradient(1px 1px at 28% 11%, #fff5d5 45%, transparent 60%),
+        radial-gradient(1px 1px at 72% 21%, #fff5d5 45%, transparent 60%),
+        radial-gradient(2px 2px at 87% 14%, #fff5d5 45%, transparent 60%),
+        radial-gradient(1px 1px at 60% 8%, #fff5d5 45%, transparent 60%);
+    }
+    .moon {
+      position: absolute; top: 10%; right: 16%; width: 84px; aspect-ratio: 1;
+      border-radius: 50%; background: #f3dfa5;
+      box-shadow: 0 0 35px rgba(243, 223, 165, .32);
+    }
+    .mountain {
+      position: absolute; inset: auto -8% 0; height: 34%;
+      background: #1c302c;
+      clip-path: polygon(0 60%, 13% 42%, 23% 60%, 41% 20%, 55% 60%, 71% 28%, 84% 58%, 94% 35%, 100% 53%, 100% 100%, 0 100%);
+      opacity: .8;
+    }
+    .mountain.back {
+      height: 43%; background: #263a3a; opacity: .65;
+      clip-path: polygon(0 62%, 17% 27%, 34% 64%, 51% 31%, 65% 67%, 81% 23%, 100% 64%, 100% 100%, 0 100%);
+    }
+    .menu, .game-shell {
+      position: relative; z-index: 1; width: min(100%, 790px);
+      border: 1px solid var(--line); border-radius: 12px;
+      background: var(--panel); box-shadow: 0 22px 80px #080f15aa;
+      backdrop-filter: blur(7px);
+    }
+    .menu {
+      width: min(100%, 850px); padding: clamp(20px, 4vw, 34px);
+      border-color: #e4c47a55; border-radius: 8px;
+      background: linear-gradient(145deg, rgba(22, 34, 41, .96), rgba(13, 22, 29, .96) 68%);
+      box-shadow: 0 25px 90px #050b10b8, inset 0 0 0 1px #ffffff08, inset 0 1px #f4d58c25;
+      text-align: center;
+    }
+    .eyebrow {
+      display: flex; align-items: center; justify-content: center; gap: 12px;
+      color: #b6d59c; letter-spacing: .24em; text-transform: uppercase;
+      font: 700 10px/1.4 Arial, sans-serif;
+    }
+    .eyebrow::before, .eyebrow::after { content: ""; width: 28px; height: 1px; background: #b6d59c77; }
+    h1 {
+      margin: 5px 0 0; color: #f5ca72; font-size: clamp(54px, 10vw, 84px);
+      line-height: .98; letter-spacing: .1em; text-shadow: 0 4px #84673b, 0 9px 28px #e8ad4b55;
+    }
+    .subtitle { margin: 8px 0 20px; color: #e2dec9; font-size: 18px; font-style: italic; }
+    .menu-art {
+      height: 154px; margin: 0 auto 22px; max-width: 530px; position: relative;
+      border: 1px solid #d5c2853d; border-bottom: 5px solid #18251f;
+      background:
+        radial-gradient(1px 1px at 18% 22%, #f5e4bd 60%, transparent 100%),
+        radial-gradient(1px 1px at 42% 34%, #f5e4bd 60%, transparent 100%),
+        radial-gradient(1px 1px at 82% 18%, #f5e4bd 60%, transparent 100%),
+        linear-gradient(180deg, #172436 0%, #294047 62%, #526244 63%, #293525 100%);
+      box-shadow: 0 8px 24px #02080b66, inset 0 0 28px #0e182377;
+      overflow: hidden; image-rendering: pixelated;
+    }
+    .menu-art:before {
+      content: ""; position: absolute; bottom: 0; left: 0; right: 0; height: 36px;
+      z-index: 2;
+      background:
+        repeating-linear-gradient(90deg, transparent 0 25px, #342c25 26px 28px, transparent 29px 53px),
+        repeating-linear-gradient(90deg, #554332 0 28px, #604b35 28px 54px);
+      border-top: 6px solid #789452;
+    }
+    .ridge {
+      position: absolute; z-index: 0; bottom: 25px; width: 100%; height: 82px;
+      background: #3a5050; clip-path: polygon(0 76%, 18% 30%, 34% 72%, 52% 18%, 72% 77%, 86% 38%, 100% 72%, 100% 100%, 0 100%);
+    }
+    .ridge.near { height: 57px; background: #293d39; clip-path: polygon(0 62%, 15% 34%, 29% 71%, 47% 25%, 66% 70%, 82% 31%, 100% 65%, 100% 100%, 0 100%); }
+    .art-moon {
+      position: absolute; top: 20px; right: 22%; width: 27px; height: 27px;
+      background: #f4dca1; box-shadow: 0 0 25px 9px #f4dca133;
+    }
+    .art-moon::after {
+      content: ""; position: absolute; inset: 5px;
+      background: radial-gradient(circle, #c8b47d 1px, transparent 2px);
+      background-size: 9px 8px;
+    }
+    .tree { position: absolute; z-index: 1; bottom: 28px; width: 16px; height: 62px; background: linear-gradient(90deg, #503a2a 0 30%, #765239 31% 70%, #503a2a 71%); }
+    .tree:before {
+      content: ""; position: absolute; width: 68px; height: 58px; left: -26px; top: -34px;
+      background: linear-gradient(160deg, #628354 0 32%, #4f7146 33% 68%, #405e3c 69%);
+      clip-path: polygon(50% 0, 100% 66%, 80% 66%, 100% 100%, 0 100%, 20% 66%, 0 66%);
+      filter: drop-shadow(3px 4px #1c302c);
+    }
+    .tree.one { left: 13%; transform: scale(.8); }.tree.two { right: 15%; transform: scale(1.05); }
+    .hero {
+      position: absolute; z-index: 3; bottom: 34px; left: 48%; width: 17px; height: 34px;
+      background: #d8b274; box-shadow: 0 -12px 0 -2px #503b32, 0 8px 0 -4px #9b6047, 9px 13px 0 -4px #644532;
+    }
+    .hero:after { content: ""; position: absolute; left: 10px; top: 14px; width: 27px; height: 5px; background: #c8d1d1; transform: rotate(-35deg); transform-origin: left center; box-shadow: 0 2px #6c7d7e; }
+    .button-row { display: grid; gap: 10px; max-width: 570px; margin: 0 auto; }
+    .primary-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .utility-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 9px; }
+    .btn[hidden] { display: none; }
+    .btn {
+      min-width: 0; min-height: 46px; padding: 10px 16px; border: 1px solid #dfb86e;
+      border-radius: 4px; color: #fff3d4; background: linear-gradient(#80633e, #58442f);
+      cursor: pointer; transition: transform .15s, filter .15s;
+      box-shadow: inset 0 1px #ffffff25, inset 0 -2px #0003, 0 3px #34291e;
+    }
+    .primary-actions .btn { min-height: 50px; font-size: 17px; font-weight: bold; }
+    .utility-actions .btn { min-height: 38px; padding: 7px 14px; border-color: #8ca68199; background: linear-gradient(#405846, #293d36); color: #e3edda; font-size: 14px; }
+    .btn:hover { filter: brightness(1.18); transform: translateY(-2px); }
+    .btn:disabled { cursor: not-allowed; filter: grayscale(.55); opacity: .58; transform: none; }
+    .menu-status { min-height: 18px; margin: 9px 0 0; color: #d3ddce; font: 12px Arial, sans-serif; }
+    .small-note { max-width: 520px; margin: 15px auto 0; color: #b9c3b9; font: 12px/1.6 Arial, sans-serif; }
+    .answers { margin: 26px auto 0; text-align: left; }
+    .answers[hidden] { display: none; }
+    .answer {
+      padding: 13px 15px; margin-top: 9px; border: 1px solid #ffffff16;
+      border-left: 3px solid #a3bf83; background: #ffffff08; border-radius: 3px;
+    }
+    .answer h2 { margin: 0 0 4px; color: var(--gold); font-size: 17px; }
+    .answer p { margin: 0; color: #e2e4d8; font-size: 14px; }
+    .back-link { display: block; margin: 17px auto 0; padding: 5px 10px; color: #c9d8bd; border: 0; background: none; cursor: pointer; text-decoration: underline; }
+    .credits-dialog { width: min(440px, calc(100vw - 28px)); padding: 24px; border: 1px solid #d5bd80; border-radius: 8px; color: var(--ink); background: linear-gradient(145deg, #1a2a31, #111b22 72%); box-shadow: 0 20px 70px #000b; font: 14px/1.5 Arial, sans-serif; }
+    .credits-dialog::backdrop { background: #071016c9; backdrop-filter: blur(3px); }
+    .credits-dialog h2 { margin: 0 0 12px; color: var(--gold); font: bold 27px Georgia, serif; }
+    .credits-list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+    .credits-list li { display: flex; flex-direction: column; padding: 10px 12px; border: 1px solid #ffffff20; border-left: 3px solid #a3bf83; background: #ffffff08; }
+    .credits-list strong { color: #b6d59c; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+    .credits-list span { color: #f3edda; font: bold 17px Georgia, serif; }
+    .credits-dialog footer { display: flex; justify-content: flex-end; margin-top: 15px; }
+    .credits-dialog footer button { padding: 8px 16px; border: 1px solid #dfb86e; border-radius: 4px; color: var(--ink); background: #58442f; cursor: pointer; }
+    .game-shell { width: min(100%, 1240px); padding: 12px; }
+    body.game-active { overflow: hidden; }
+    body.game-active .scene { min-height: 100dvh; padding: 0; overflow: hidden; }
+    .game-shell:not([hidden]) {
+      position: fixed; inset: 0; z-index: 5; display: flex; flex-direction: column;
+      width: 100%; height: 100vh; height: 100dvh; max-width: none; min-height: 0;
+      padding: 6px; border: 0; border-radius: 0; overflow: hidden;
+    }
+    .game-top { position: relative; z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 38px; padding: 3px 4px 7px; font: 13px Arial, sans-serif; color: #d4dfca; }
+    .game-top strong { color: var(--gold); font: bold 20px Georgia, serif; letter-spacing: .08em; }
+    .game-top #regionName { padding: 5px 10px; border: 1px solid #9fb88c55; border-radius: 14px; color: #dff0c6; background: #45634866; font: bold 11px Arial, sans-serif; letter-spacing: .06em; }
+    .game-top button { padding: 6px 12px; border: 1px solid #ffffff38; border-radius: 4px; color: var(--ink); background: #ffffff10; cursor: pointer; }
+    .game-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 7px; }
+    .game-top button:disabled { cursor: wait; opacity: .7; }
+    .game-stage { position: relative; flex: 1 1 auto; min-height: 0; overflow: hidden; border: 2px solid #827253; background: #243647; box-shadow: inset 0 0 0 1px #e6d39a45, 0 5px #090f12; }
+    .canvas-wrap { position: absolute; inset: 0; overflow: hidden; background: #243647; }
+    canvas { display: block; width: 100%; height: 100%; min-height: 0; image-rendering: pixelated; cursor: crosshair; }
+    .game-overlay { position: absolute; z-index: 1; inset: 0; display: flex; flex-direction: column; justify-content: space-between; gap: 8px; padding: 8px; pointer-events: none; }
+    .game-overlay > * { pointer-events: auto; }
+    .overlay-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+    .status-dock { display: grid; gap: 4px; width: min(460px, 72%); padding: 5px; border: 1px solid #e3d29b66; border-radius: 4px; color: #e9ebdd; background: linear-gradient(135deg, #121b20ef, #25312de8); box-shadow: 0 3px 10px #0008, inset 0 1px #ffffff18; font: 11px Arial, sans-serif; }
+    .hud { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 6px 9px; }
+    .health-readout { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+    .hearts { color: #ff887b; letter-spacing: 1px; font-size: 14px; text-shadow: 0 1px #5e1b21; }
+    #message { overflow: hidden; color: #d3ddce; text-overflow: ellipsis; white-space: nowrap; }
+    .gold-pouch { display: inline-flex; align-items: center; gap: 5px; min-height: 26px; padding: 3px 7px; border: 1px solid #f4d27688; border-radius: 3px; color: #ffe5a0; background: linear-gradient(#544421ef, #292719ed); box-shadow: inset 0 1px #fff7, 0 2px #15130c; font: bold 9px Arial, sans-serif; letter-spacing: .08em; white-space: nowrap; }
+    .gold-pouch strong { color: #fff2bd; font: bold 13px Arial, sans-serif; letter-spacing: 0; }
+    .gold-coin { width: 15px; height: 15px; border: 2px solid #f9e6a3; border-radius: 50%; color: #70491e; background: radial-gradient(circle at 35% 30%, #fff1a7, #eab940 62%, #a76b27); box-shadow: inset 0 0 0 2px #d39737, 0 1px 3px #0009; text-align: center; font: bold 10px/11px Georgia, serif; }
+    .hotbar-dock { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 2px 8px; width: 100%; margin: 0 auto; padding: 4px 6px; border: 0; border-radius: 2px; background: transparent; box-shadow: none; }
+    .inventory-side { display: flex; flex-direction: column; align-items: center; gap: 4px; padding-left: 8px; border-left: 1px solid #d5bd8055; }
+    .inventory-label { color: #d3ddce; font: bold 8px Arial, sans-serif; letter-spacing: .12em; }
+    .hotbar { display: flex; flex-wrap: nowrap; gap: 4px; justify-content: center; max-width: 100%; overflow-x: auto; padding: 2px; scrollbar-width: thin; scrollbar-color: #9c8050 #172020; }
+    .slot { position: relative; display: flex; flex: 0 0 48px; width: 48px; min-height: 48px; flex-direction: column; align-items: center; justify-content: center; gap: 1px; padding: 3px 2px; border: 2px solid #8e7950; border-radius: 3px; color: var(--ink); background: linear-gradient(145deg,#4c5648,#27312c 65%,#1a2426); text-align: center; box-shadow: inset 1px 1px #fff4, inset -1px -1px #0008, 1px 2px #090e0d; cursor: pointer; }
+    .slot.active { z-index: 1; border-color: #ffe28c; background: linear-gradient(145deg,#655a3e,#34352b 65%,#202523); box-shadow: inset 1px 1px #fff8, 0 0 0 2px #e7c56a77, 0 0 12px #f4cb69a0; transform: translateY(-3px); }
+    .slot:focus-visible { outline: 2px solid #f3dfa5; outline-offset: 2px; }
+    .slot .icon { position: relative; width: 19px; height: 19px; flex: 0 0 19px; overflow: hidden; border: 2px solid #222a25; box-shadow: inset 2px 2px #ffffff38, 2px 2px #080d0c; image-rendering: pixelated; }
+    .slot .icon.dirt { background: linear-gradient(#78954e 0 22%, #98643f 23% 100%); }
+    .slot .icon.dirt:after { content: ""; position: absolute; inset: 9px 3px 2px; background: repeating-conic-gradient(#bc8050 0 25%, #70492f 0 50%) 0 / 7px 7px; }
+    .slot .icon.stone { background: repeating-conic-gradient(#aaa99a 0 25%, #696e68 0 50%) 0 / 9px 9px; }
+    .slot .icon.wood { background: repeating-linear-gradient(90deg, #d5a25e 0 5px, #855831 5px 9px); }
+    .slot .icon.copper { background: repeating-conic-gradient(#e7a65a 0 25%, #945337 0 50%) 0 / 8px 8px; }
+    .slot .icon.iron { background: repeating-conic-gradient(#c9d2d7 0 25%, #707a82 0 50%) 0 / 8px 8px; }
+    .slot .gear-icon { display: block; width: 22px; height: 20px; flex: 0 0 20px; overflow: visible; filter: drop-shadow(1px 2px 1px #000b); }
+    .slot.equipment { border-color: #968052; }
+    .slot.pickaxe-slot.active { border-color: #9ee6ea; box-shadow: inset 1px 1px #fff8, 0 0 9px #7edfe3a0; }
+    .slot-key { position: absolute; top: 2px; left: 4px; color: #e7d6a5; font: bold 8px Arial, sans-serif; }
+    .slot-name { display: block; max-width: 100%; overflow: hidden; color: #f3edda; font: bold 7px/1.1 Arial, sans-serif; text-overflow: ellipsis; white-space: nowrap; }
+    .slot-kind { display: block; color: #aebba7; font: 5px/1 Arial, sans-serif; letter-spacing: .08em; }
+    .slot-stat { display: block; color: #f0d48b; font: bold 7px/1.1 Arial, sans-serif; }
+    .progress-readout { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 8px; padding: 3px 5px 0; border-top: 1px solid #ffffff20; color: #d3ddce; font: 9px Arial, sans-serif; }
+    .xp-track { flex: 1 1 60px; height: 6px; overflow: hidden; border: 1px solid #9fa88888; background: #10191d; }
+    .xp-track > div { width: 0; height: 100%; background: linear-gradient(90deg, #93bf68, #d6dc87); transition: width .2s; }
+    .selected-item-details { display: flex; grid-column: 1 / -1; min-height: 20px; align-items: center; justify-content: center; gap: 7px; padding: 1px 6px; color: #d9e1d3; font: 9px Arial, sans-serif; text-align: left; }
+    .selected-item-details strong { color: #f2d48a; font-size: 10px; }
+    .selected-item-details small { margin-left: 5px; color: #bbc8b5; font-size: 9px; }
+    .detail-count { padding: 3px 7px; border: 1px solid #d5bd8055; border-radius: 12px; color: #fff0c1; font-weight: bold; white-space: nowrap; }
+    .loot-readout { display: flex; flex-wrap: wrap; justify-content: center; gap: 3px; max-width: 150px; color: #b7c5ad; font: 8px Arial, sans-serif; }
+    .resource-chip { display: inline-flex; align-items: center; gap: 3px; padding: 2px 4px; border: 1px solid #ffffff1a; border-radius: 2px; background: #ffffff08; white-space: nowrap; }
+    .resource-icon { display: inline-block; width: 9px; height: 9px; border: 1px solid #121820; border-radius: 2px; box-shadow: inset 1px 1px #ffffff70; }
+    .resource-icon.potions { background: #ce718d; border-radius: 50% 50% 3px 3px; }
+    .resource-icon.copper { background: #d58a52; }
+    .resource-icon.iron { background: #bbc3c9; }
+    .resource-icon.gold { background: #f1ca62; }
+    .resource-icon.starore { background: #c09aff; }
+    .village-services { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 4px; padding: 0; border: 0; background: transparent; }
+    .village-services button { padding: 4px 7px; border: 1px solid #8ca681; border-radius: 3px; color: var(--ink); background: linear-gradient(#48604a, #2d4138); cursor: pointer; font: 10px Arial, sans-serif; }
+    .village-services button:disabled { cursor: not-allowed; opacity: .48; }
+    .village-status { flex: 1 1 100%; color: #b9c9ae; text-align: center; font: 9px Arial, sans-serif; }
+    .overlay-bottom { display: flex; flex-direction: column; gap: 2px; width: min(100%, 700px); align-self: center; padding: 3px 5px; border: 1px solid #dfcf9c88; border-radius: 4px; background: linear-gradient(145deg, #202a2bef, #11191ded); box-shadow: 0 5px 16px #000b, inset 0 1px #ffffff22; }
+    .action-row { display: flex; align-items: center; justify-content: space-between; gap: 6px; padding-top: 3px; border-top: 1px solid #ffffff20; }
+    .action-row .village-services { flex: 1 1 auto; }
+    .action-row .boss-compass { flex: 0 1 auto; margin: 0; }
+    .control-hint { max-width: 43%; padding: 6px 8px; border: 1px solid #ffffff25; border-radius: 4px; color: #e2e8dd; background: #10191dcc; box-shadow: 0 2px 8px #0006; font: 10px/1.35 Arial, sans-serif; text-align: right; }
+    .villager-dialog { width: min(440px, calc(100vw - 28px)); padding: 22px; border: 1px solid #d5bd80; border-radius: 8px; color: var(--ink); background: linear-gradient(145deg, #1a2a31, #111b22 72%); box-shadow: 0 20px 70px #000b; font: 14px/1.5 Arial, sans-serif; }
+    .villager-dialog::backdrop { background: #071016c9; backdrop-filter: blur(3px); }
+    .villager-dialog h2 { margin: 0 0 7px; color: var(--gold); font: bold 25px Georgia, serif; }
+    .villager-dialog p { margin: 0 0 14px; color: #c6d0bf; }
+    .villager-actions { display: grid; gap: 7px; }
+    .villager-actions button, .villager-dialog footer button { padding: 9px 12px; border: 1px solid #8ca681; border-radius: 4px; color: var(--ink); background: linear-gradient(#48604a, #2d4138); cursor: pointer; font: bold 12px Arial, sans-serif; }
+    .villager-actions button:disabled { cursor: not-allowed; opacity: .48; }
+    .villager-dialog footer { display: flex; justify-content: flex-end; margin-top: 12px; }
+    .boss-compass { display: flex; min-height: 24px; align-items: center; justify-content: center; gap: 5px; margin: 0 auto; padding: 1px 7px; border: 1px solid #d5bd8060; border-radius: 3px; color: #f0dfb0; background: #162229f2; font: bold 9px Arial, sans-serif; letter-spacing: .04em; }
+    .boss-compass-arrow { width: 23px; height: 23px; flex: 0 0 23px; filter: drop-shadow(0 1px 2px #000); transition: transform .18s ease-out; }
+    .boss-compass-label { min-width: 0; text-align: center; }
+    .guide-dialog {
+      width: min(680px, calc(100vw - 28px)); max-height: min(82vh, 760px); padding: 24px;
+      border: 1px solid #d5bd80; border-radius: 8px; color: var(--ink);
+      background: linear-gradient(145deg, #1a2a31, #111b22 72%); box-shadow: 0 20px 70px #000b;
+      font: 14px/1.5 Arial, sans-serif;
+    }
+    .guide-dialog::backdrop { background: #071016c9; backdrop-filter: blur(3px); }
+    .guide-dialog h2 { margin: 0 0 5px; color: var(--gold); font: bold 28px Georgia, serif; }
+    .guide-intro { margin: 0 0 16px; color: var(--muted); }
+    .guide-steps { display: grid; gap: 9px; margin: 0; padding: 0; list-style: none; }
+    .guide-steps li { padding: 10px 12px; border: 1px solid #ffffff20; border-left: 3px solid #a3bf83; background: #ffffff08; }
+    .guide-steps strong { color: #f2d48a; }
+    .guide-toggle { display: block; width: 100%; margin-top: 12px; padding: 10px 12px; border: 1px solid #8ca681; border-radius: 4px; color: #eaf0dc; background: #354d3d; cursor: pointer; text-align: left; font: bold 13px Arial, sans-serif; }
+    .tool-progression { margin-top: 8px; padding: 12px; border: 1px solid #ffffff20; border-radius: 4px; background: #0c151b80; }
+    .tool-progression[hidden] { display: none; }
+    .tool-progression h3 { margin: 0 0 8px; color: var(--gold); font: bold 17px Georgia, serif; }
+    .tool-tiers { display: grid; gap: 7px; margin: 0; padding: 0; list-style: none; }
+    .tool-tiers li { padding: 8px 10px; border-left: 3px solid #9dc18a; background: #ffffff08; }
+    .tool-tiers strong { color: #f2d48a; }
+    .tool-note { margin: 9px 0 0; color: #c2cbbd; font-size: 11px; }
+    .guide-dialog footer { display: flex; justify-content: flex-end; margin-top: 16px; }
+    .guide-dialog button { padding: 8px 16px; border: 1px solid #dfb86e; border-radius: 4px; color: var(--ink); background: #58442f; cursor: pointer; }
+    .overlay {
+      position: absolute; inset: 0; display: grid; place-items: center; padding: 20px;
+      background: #0c151bd9; text-align: center;
+    }
+    .overlay[hidden] { display: none; }
+    .overlay-card { max-width: 420px; }
+    .overlay h2 { margin: 0 0 7px; color: var(--gold); font-size: 32px; }
+    .overlay p { margin: 0 0 18px; }
+    .game-shell[hidden], .menu[hidden] { display: none; }
+    @media (max-width: 540px) {
+      .moon { right: 8%; width: 60px; }
+      .menu { padding: 22px 16px; }
+      .menu-art { height: 125px; margin-bottom: 17px; }
+      .primary-actions { gap: 8px; }
+      .primary-actions .btn { padding: 9px 6px; font-size: 15px; }
+      .utility-actions { gap: 7px; }
+      .utility-actions .btn { padding: 7px 10px; font-size: 12px; }
+      .game-shell:not([hidden]) { padding: 5px; }
+      .game-top { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 7px; padding: 2px 2px 5px; font-size: 11px; }
+      .game-top strong { font-size: 16px; }
+      .game-top button { flex: 0 0 auto; padding: 5px 7px; font-size: 10px; }
+      .game-actions { grid-column: 1 / -1; flex-wrap: nowrap; justify-content: flex-start; gap: 4px; width: 100%; overflow-x: auto; padding-bottom: 2px; }
+      .game-top #regionName { max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .game-top #regionName { justify-self: end; }
+      .game-overlay { gap: 4px; padding: 5px; }
+      .overlay-top { flex-direction: column; gap: 4px; }
+      .status-dock { width: 100%; }
+      .hud { grid-template-columns: minmax(0, 1fr) auto; }
+      #message { grid-column: 1 / -1; grid-row: 2; }
+      .control-hint { display: none; }
+      .progress-readout { gap: 4px 6px; }
+      .hotbar-dock { grid-template-columns: minmax(0, 1fr); gap: 2px; padding: 2px 0; }
+      .hotbar { justify-content: flex-start; }
+      .inventory-side { flex-direction: row; padding: 0; border: 0; }
+      .loot-readout { max-width: 100%; justify-content: flex-start; }
+      .hotbar { gap: 3px; }
+      .slot { flex-basis: 42px; width: 42px; min-height: 46px; padding: 2px 1px; }
+      .slot-name { font-size: 6px; }
+      .slot .icon { width: 16px; height: 16px; flex-basis: 16px; }
+      .slot .gear-icon { width: 19px; height: 18px; flex-basis: 18px; }
+      .game-overlay .selected-item-details { min-height: 20px; }
+      .selected-item-details small { display: none; }
+      .overlay-bottom { width: 100%; padding: 3px; }
+      .action-row { flex-direction: column; align-items: stretch; }
+      .action-row .boss-compass { max-width: 100%; }
+      .village-services { padding: 0; }
+      .village-services button { padding: 5px 7px; font-size: 10px; }
+      .selected-item-details { font-size: 9px; }
+      .village-status { flex-basis: 100%; }
+      .villager-dialog { padding: 17px; }
+      .boss-compass { min-height: 27px; padding: 2px 8px; font-size: 9px; }
+      .boss-compass-arrow { width: 20px; height: 20px; flex-basis: 20px; }
+      .guide-dialog { padding: 17px; font-size: 13px; }
+      .guide-dialog h2 { font-size: 24px; }
+    }
+    @media (max-height: 620px) {
+      .scene { place-items: start center; padding-block: 14px; }
+      .menu { padding-block: 18px; }
+      h1 { font-size: clamp(48px, 9vw, 72px); }
+      .subtitle { margin: 5px 0 13px; }
+      .menu-art { height: 116px; margin-bottom: 14px; }
+      .small-note { margin-top: 9px; }
+    }
+    @media (max-height: 620px) {
+      .game-shell:not([hidden]) { padding: 4px; }
+      .game-top { min-height: 32px; padding-bottom: 4px; }
+      .game-overlay { padding: 4px; }
+      .overlay-top, .overlay-bottom { gap: 3px; }
+      .hud, .progress-readout { padding-top: 3px; padding-bottom: 3px; }
+      .slot { min-height: 54px; }
+      .slot .icon, .slot .gear-icon { display: none; }
+      .slot-kind { display: none; }
+      .selected-item-details { min-height: 20px; }
+      .village-services { padding: 3px; }
+      .village-services button { padding: 4px 7px; }
+      .village-status { flex-basis: 100%; }
+      .boss-compass { min-height: 23px; padding: 1px 7px; }
+    }
+    @media (max-height: 380px) {
+      .progress-readout { display: none; }
+      .control-hint { display: none; }
+      .overlay-top { flex-direction: row; }
+      .slot { min-height: 46px; }
+      .selected-item-details { display: none; }
+      .village-status { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="scene">
+    <div class="stars"></div><div class="moon"></div>
+    <div class="mountain back"></div><div class="mountain"></div>
+
+    <section class="menu" id="mainMenu" aria-label="Teressa main menu">
+      <div class="eyebrow">A little world beneath the wilds</div>
+      <h1>TERESSA</h1>
+      <p class="subtitle">Beneath the Bloom</p>
+      <div class="menu-art" aria-hidden="true"><span class="art-moon"></span><span class="ridge"></span><span class="ridge near"></span><span class="tree one"></span><span class="tree two"></span><span class="hero"></span></div>
+      <div class="button-row">
+        <div class="primary-actions" aria-label="Start playing">
+          <button class="btn" id="loadGameButton">Load Game</button>
+          <button class="btn" id="newGameButton">New Game</button>
+        </div>
+        <div class="utility-actions" aria-label="More options">
+          <button class="btn" id="menuUpdateButton" type="button">Update game</button>
+          <button class="btn" id="creditsButton" type="button">Credits</button>
+          <button class="btn" id="assignmentButton">Assignment answers</button>
+          <button class="btn" id="installButton" hidden>Install Teressa</button>
+        </div>
+      </div>
+      <p class="menu-status" id="menuStatus" aria-live="polite"></p>
+      <section class="answers" id="answers" hidden aria-label="Diffusion assignment answers">
+        <div id="assignmentAnswerList"></div>
+        <button class="back-link" id="closeAnswers">Back to the main menu</button>
+      </section>
+      <p class="small-note">An endless, ever-changing world. Delve deeper. Defeat the guardians. Rise stronger.</p>
+      <dialog class="credits-dialog" id="creditsDialog" aria-labelledby="creditsTitle">
+        <h2 id="creditsTitle">Credits</h2>
+        <ul class="credits-list" id="creditsList"></ul>
+        <footer><button id="closeCredits" type="button">Back to the menu</button></footer>
+      </dialog>
+    </section>
+
+    <section class="game-shell" id="gameShell" hidden aria-label="Teressa game">
+      <header class="game-top">
+        <strong>TERESSA</strong>
+        <span id="regionName">Discover · Survive · Grow</span>
+        <div class="game-actions">
+          <button id="resetTerrainButton" type="button">Reset terrain</button>
+          <button id="saveGameButton" type="button">Save now</button>
+          <button id="updateButton" type="button">Update now</button>
+          <button id="progressionGuideButton" type="button">Progression guide</button>
+          <button id="fullscreenButton" type="button">Fullscreen</button>
+          <button id="menuButton" type="button">Main menu</button>
+        </div>
+      </header>
+      <div class="game-stage">
+        <div class="canvas-wrap">
+          <canvas id="game" width="1280" height="720" aria-label="Endless game world"></canvas>
+          <div class="overlay" id="overlay" hidden>
+            <div class="overlay-card">
+              <h2 id="overlayTitle">Paused</h2>
+              <p id="overlayText">Take a breath, adventurer.</p>
+              <button class="btn" id="resumeButton">Keep exploring</button>
+            </div>
+          </div>
+        </div>
+        <div class="game-overlay">
+          <div class="overlay-top">
+            <div class="status-dock">
+              <div class="hud">
+                <span class="health-readout">HEALTH <b class="hearts" id="health">♥ ♥ ♥ ♥ ♥</b></span>
+                <span id="message">Find a path through the earth.</span>
+                <div class="gold-pouch" title="Gold collected during this adventure"><span class="gold-coin" aria-hidden="true">G</span><span>GOLD</span><strong id="goldCount" aria-live="polite">0</strong></div>
+              </div>
+              <div class="progress-readout"><span id="levelLabel">LVL 1</span><span id="xpLabel">0 / 60 XP</span><div class="xp-track"><div id="xpBar"></div></div><span id="depthLabel">Surface · 0 m</span><span id="coordLabel">Tile 0, 0</span><span id="bossCount">Guardians 0</span><span id="weaponLabel">Bramble blade</span></div>
+            </div>
+            <span class="control-hint">WASD move · Space jump · 1 sword · 2 pickaxe · 3–7 blocks · E heal · T talk</span>
+          </div>
+          <div class="overlay-bottom">
+            <div class="hotbar-dock">
+              <div class="hotbar" id="hotbar" aria-label="Equipment and inventory"></div>
+              <div class="inventory-side"><span class="inventory-label">PACK</span><div class="loot-readout" id="lootReadout" aria-label="Resource inventory"></div></div>
+              <div class="selected-item-details" aria-live="polite">
+                <span><strong id="selectedItemName">Bramble blade · SWORD</strong><small id="selectedItemDescription">Sword equipment · attack with click or J.</small></span>
+                <span class="detail-count" id="selectedItemQuantity">16 ATK</span>
+              </div>
+            </div>
+            <div class="action-row">
+              <div class="village-services" aria-label="Village services">
+                <button id="talkToVillagerButton" type="button" disabled>Talk · T</button>
+                <button id="teleportSpawnButton" type="button">Teleport to spawn</button>
+                <button id="setSpawnButton" type="button" disabled>Set spawn</button>
+                <button id="trainButton" type="button" disabled>Train</button>
+                <button id="restButton" type="button" disabled>Rest</button>
+                <span class="village-status" id="villageStatus" aria-live="polite">Find a village for training, healing, and a safe spawn point.</span>
+              </div>
+              <div class="boss-compass" id="bossCompass" role="status" aria-live="off" aria-label="Compass to the next boss room">
+                <svg class="boss-compass-arrow" id="bossCompassArrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1 20 21 12 17 4 21Z" fill="#d86655" stroke="#f4d893" stroke-width="1.2"/><path d="m12 5 0 12-6 3Z" fill="#f3e5b7"/><circle cx="12" cy="12" r="2" fill="#4a3d32" stroke="#f4d893"/></svg>
+                <span class="boss-compass-label" id="bossCompassLabel">LEVEL 1 BOSS ROOM · CALCULATING</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <dialog class="guide-dialog" id="progressionGuide" aria-labelledby="progressionGuideTitle">
+        <h2 id="progressionGuideTitle">Path of Progression</h2>
+        <p class="guide-intro">Explore, prepare, and descend at your own pace. Your progress saves automatically, or use Save now whenever you like.</p>
+        <ol class="guide-steps">
+          <li><strong>Start at the surface.</strong> Fight nearby creatures with your sword (slot 1) to earn XP, materials, and sometimes healing potions. Use E to drink a potion.</li>
+          <li><strong>Grow stronger.</strong> XP raises your level, health, and damage. Click a village villager or press T nearby to talk: train for another level and damage boost, rest to restore health for 2 gold, or set a safe spawn.</li>
+          <li><strong>Explore underground.</strong> Look for a marked cave mouth on the surface; entrances appear across the endless world, about every 240 tiles. Follow its winding tunnels downward. Each entrance connects to deeper caves and guarded chambers, where enemies grow tougher.</li>
+          <li><strong>Mine what your pick allows.</strong> Equip the pickaxe (slot 2). Basic stone and copper need rank 0; iron, ice ore, and deepstone need rank 1; gold and cinderstone rank 2; star ore rank 3; chamber brick rank 4.</li>
+          <li><strong>Meet the guardian level requirements:</strong> Guardian 1 — level 5; Guardian 2 — level 10; Guardian 3 — level 15; Guardian 4 — level 20; Guardian 5 — level 25. Each later guardian requires five more levels than the last. Enter an unlocked chamber to awaken its boss. Victories grant XP and star ore, forge the next sword and pickaxe tier, boost damage, and restore your health.</li>
+          <li><strong>Make a safe return.</strong> Set your spawn at a village, then use <strong>Teleport to spawn</strong> whenever you want to return there. Teleporting does not heal you.</li>
+        </ol>
+        <button class="guide-toggle" id="toolProgressionToggle" type="button" aria-expanded="false" aria-controls="toolProgression">Show tool progression</button>
+        <section class="tool-progression" id="toolProgression" hidden aria-label="Sword and pickaxe progression">
+          <h3>Sword &amp; Pickaxe Forging Path</h3>
+          <ol class="tool-tiers">
+            <li><strong>Starting gear · Rank 0:</strong> Bramble blade (16 base damage) and Twig pick. Mine common stone and copper; use sword and XP to prepare for the first descent.</li>
+            <li><strong>Guardian 1 · The Root Warden:</strong> Forge the Copper sabre and Copper pickaxe. Rank 1 also breaks iron, ice ore, and deepstone.</li>
+            <li><strong>Guardian 2 · Glacier Maw:</strong> Forge Frostfang and the Frost pick. Rank 2 unlocks gold and cinderstone.</li>
+            <li><strong>Guardian 3 · Ashen Colossus:</strong> Forge the Cinder cleaver and Cinder drill. Rank 3 unlocks star ore.</li>
+            <li><strong>Guardian 4 · The Hollow King:</strong> Forge the Starforged edge and Starforged pick. Rank 4 can break guardian-chamber brick.</li>
+          </ol>
+          <p class="tool-note">Each boss victory advances both tools, adds a major damage bonus, grants star ore, and restores your health. Character levels also increase health and attack damage. The Star Eater and later guardians still reward XP, star ore, and damage after tools reach their final tier.</p>
+        </section>
+        <footer><button id="closeProgressionGuide" type="button">Back to the game</button></footer>
+      </dialog>
+      <dialog class="villager-dialog" id="villagerDialog" aria-labelledby="villagerDialogTitle">
+        <h2 id="villagerDialogTitle">Village Wayfarer</h2>
+        <p id="villagerDialogText">Welcome, traveler.</p>
+        <div class="villager-actions">
+          <button id="villagerRestButton" type="button">Rest and heal · 2 gold</button>
+          <button id="villagerTrainButton" type="button">Train</button>
+          <button id="villagerSpawnButton" type="button">Set this village as spawn</button>
+        </div>
+        <footer><button id="villagerCloseButton" type="button">Farewell</button></footer>
+      </dialog>
+    </section>
+  </main>
+  <script src="credits.js"></script>
+  <script src="assignment.js"></script>
+  <script src="game.js?v=31"></script>
+</body>
+</html>

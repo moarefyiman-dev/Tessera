@@ -1,0 +1,20 @@
+{
+  "id": "./",
+  "name": "Teressa: Beneath the Bloom",
+  "short_name": "Teressa",
+  "description": "Explore, gather, and build in a tiny pixel-art wilderness.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#101821",
+  "theme_color": "#101821",
+  "icons": [
+    {
+      "src": "teressa-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
